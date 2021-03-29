@@ -159,14 +159,20 @@ for fleet_type in fleet_list:
             network.airport_nodes[airport].loc[idx, f'node_{fleet_type}'] = result_dict[node]
 
 result_df = None
+result_summary = None
 for airport in network.airport_list:
     if result_df is None:
         result_df = network.airport_nodes[airport]
         result_df['airport'] = airport
+        result_summary = result_df.iloc[-1:, :]
     else:
         tmp = network.airport_nodes[airport]
         tmp['airport'] = airport
         result_df = pd.concat((result_df, tmp))
+        result_summary = pd.concat((result_summary, tmp.iloc[-1:, :]))
+
+result_summary.reset_index(drop=True, inplace=True)
+result_summary = result_summary[['airport', 'Origin', 'Destination', 'node_A', 'node_B']]
 result_df.reset_index(drop=True, inplace=True)
 
 ## x_ij
@@ -182,3 +188,4 @@ result_df = result_df[['airport', 'Flight number', 'Origin',
                        'node_B', ]]
 
 result_df.to_csv('result.csv', index=False)
+result_summary.to_csv('result_summary.csv', index=False)

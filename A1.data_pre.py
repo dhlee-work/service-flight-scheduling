@@ -8,13 +8,13 @@ from util import Fleet, Network, L
 #input fleet info.
 fleet = {  'A' : Fleet(fleet_type='A',
                        airplane_type='737-800',
-                       num_airplane=6,
+                       num_airplane=9,
                        num_seats=162,
-                       casm=13,
+                       casm=14,
                        rasm=17),
            'B' : Fleet(fleet_type='B',
                        airplane_type='757-200',
-                       num_airplane=9,
+                       num_airplane=6,
                        num_seats=200,
                        casm=15,
                        rasm=17)}
