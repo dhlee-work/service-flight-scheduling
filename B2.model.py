@@ -78,7 +78,9 @@ for f_num in flight_number_list:
 constraint_2 = []
 for fleet_type in fleet_list:
     for airport in network.airport_list:
-        net_nodes = network.airport_nodes[airport][['Flight number', 'Origin', 'Destination']].astype('object')
+        net_nodes = network.airport_nodes[airport][['Flight number',
+                                                    'Origin',
+                                                    'Destination']].astype('object')
         rep = len(net_nodes) // 2
         idx = np.tile([0, 1], rep)
         left_node = net_nodes.iloc[np.where(idx == 0)[0]]['Flight number'].values
@@ -98,7 +100,9 @@ constraint_3 = []
 for fleet_type in fleet_list:
     g = None
     for airport in network.airport_list:
-        net_nodes = network.airport_nodes[airport][['Flight number', 'Origin', 'Destination']].astype('object')
+        net_nodes = network.airport_nodes[airport][['Flight number',
+                                                    'Origin',
+                                                    'Destination']].astype('object')
         last_node_num = net_nodes.index.values[-1]
         g += vars_y[f'{fleet_type}_{airport}_{last_node_num}']
     constraint_3.append(g <= fleet[fleet_type].num_airplane)
@@ -107,7 +111,9 @@ for fleet_type in fleet_list:
 constraint_4 = []
 for airport in network.airport_list:
     # set t-1 node flight
-    net_nodes = network.airport_nodes[airport][['Flight number', 'Origin', 'Destination']].astype('object')
+    net_nodes = network.airport_nodes[airport][['Flight number',
+                                                'Origin',
+                                                'Destination']].astype('object')
     seq_node = net_nodes.index.values
     seq_node_1 = np.concatenate((seq_node[-1:], seq_node[:-1]), axis=0)
     net_nodes['t'] = seq_node
@@ -125,7 +131,7 @@ for airport in network.airport_list:
                                     f'{fleet_type}_{airport}_{net_node_inst.t}'])
 
 ## add constraint into model
-constraints = constraint_1 + constraint_2 + constraint_3 + constraint_4
+constraints = constraint_1 + constraint_3 + constraint_4
 for i, c in enumerate(constraints):
     constraint_name = f"const_{i}"
     LPmodel_complex.constraints[constraint_name] = c
@@ -140,14 +146,14 @@ print("Status:", pulp.LpStatus[LPmodel_complex.status])
 ## arrange result as dictionary
 for v in LPmodel_complex.variables():
     print(f"{v}:{v.value():5.1f}")
-result_dict = {str(v): v.value() for v in LPmodel_complex.variables()}
+result_dict = {str(v): int(v.value()) for v in LPmodel_complex.variables()}
 
 
 ## y_jk
 for fleet_type in fleet_list:
     for airport in network.airport_list:
         network.airport_nodes[airport][f'node_{fleet_type}'] = 0
-        index_list = network.airport_nodes['ATL'].index.values
+        index_list = network.airport_nodes[airport].index.values
         for idx in index_list:
             node = f'node_{fleet_type}_{airport}_{idx}'
             network.airport_nodes[airport].loc[idx, f'node_{fleet_type}'] = result_dict[node]

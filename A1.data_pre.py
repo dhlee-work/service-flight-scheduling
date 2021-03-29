@@ -8,13 +8,13 @@ from util import Fleet, Network, L
 #input fleet info.
 fleet = {  'A' : Fleet(fleet_type='A',
                        airplane_type='737-800',
-                       num_airplane=9,
+                       num_airplane=6,
                        num_seats=162,
-                       casm=14,
+                       casm=13,
                        rasm=17),
            'B' : Fleet(fleet_type='B',
                        airplane_type='757-200',
-                       num_airplane=6,
+                       num_airplane=9,
                        num_seats=200,
                        casm=15,
                        rasm=17)}
@@ -66,14 +66,18 @@ network.airport_list = airport_list
 for airport in airport_list:
     node_idx = np.where(data[['Destination', 'Origin']] == airport)[0]
     # get nodes list at the airport
-    airport_nodes = data[['Flight number', 'Origin', 'Departure Time', 'Destination', 'Arrival Time'] + [f'x_{fleet_type}' for fleet_type in fleet_list]].iloc[node_idx, :]
+    airport_nodes = data[['Flight number',
+                          'Origin',
+                          'Departure Time',
+                          'Destination',
+                          'Arrival Time'] + [f'x_{fleet_type}' for fleet_type in fleet_list]].iloc[node_idx, :]
 
     #sort by Departure Time
     #nodes_time = pd.to_datetime(airport_nodes['Departure Time'], format='%H:%M').dt.time # convert to time format
     #nodes_sorting_index = nodes_time.argsort()
     #airport_nodes = airport_nodes.iloc[nodes_sorting_index,:]
     #airport_nodes.reset_index(drop=True, inplace=True)
-    #sort by dataa list
+    #sort by dataa lista
     idx = airport_nodes.index.values
     airport_nodes.index = airport_nodes['Flight number']
     airport_nodes = airport_nodes.loc[network.node_seq[airport], :]
