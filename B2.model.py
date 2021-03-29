@@ -173,6 +173,10 @@ for airport in network.airport_list:
 
 result_summary.reset_index(drop=True, inplace=True)
 result_summary = result_summary[['airport', 'Origin', 'Destination', 'node_A', 'node_B']]
+result_summary = result_summary.append({'airport':'Total',
+                                        'node_A':result_summary.iloc[:,-2].sum(),
+                                        'node_B':result_summary.iloc[:,-1].sum()},
+                                       ignore_index=True)
 result_df.reset_index(drop=True, inplace=True)
 
 ## x_ij
