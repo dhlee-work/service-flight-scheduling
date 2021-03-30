@@ -144,8 +144,8 @@ print("Status:", pulp.LpStatus[LPmodel_complex.status])
 #    print(f"Produce {v.varValue:5.1f} Cake {v}")
 
 ## arrange result as dictionary
-for v in LPmodel_complex.variables():
-    print(f"{v}:{v.value():5.1f}")
+#for v in LPmodel_complex.variables():
+#    print(f"{v}:{v.value():5.1f}")
 result_dict = {str(v): int(v.value()) for v in LPmodel_complex.variables()}
 
 
@@ -185,11 +185,26 @@ for idx in range(result_df.shape[0]):
     for fleet_type in fleet_list:
         fnum = result_df.loc[idx, 'Flight number']
         result_df.loc[idx, f'x_{fleet_type}'] = result_dict[f'x_{fleet_type}_{fnum}']
+result_df.columns
 
 result_df = result_df[['airport', 'Flight number', 'Origin',
                        'Departure Time', 'Destination',
                        'Arrival Time', 'x_A', 'x_B', 'node_A',
                        'node_B', ]]
+result_cost = result_df[['Flight number', 'Origin',
+                       'Departure Time', 'Destination',
+                       'Arrival Time', 'x_A', 'x_B']]
+
+result_cost = result_cost.drop_duplicates()
+result_cost.reset_index(drop=True, inplace=True)
+result_cost = pd.merge(data[['Flight number', 'total_cost_A', 'total_cost_B']], result_cost, how ='left', on='Flight number')
+result_cost['loss'] = result_cost['total_cost_A'] * result_cost['x_A'] + result_cost['total_cost_B'] * result_cost['x_B']
+result_cost = result_cost.append({'Flight number':'Total',
+                                        'loss':result_cost.iloc[:,-1].sum()},
+                                       ignore_index=True)
+
+
 
 result_df.to_csv('result.csv', index=False)
 result_summary.to_csv('result_summary.csv', index=False)
+result_cost.to_csv('result_cost.csv', index=False)
