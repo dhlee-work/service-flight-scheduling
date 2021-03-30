@@ -1,4 +1,6 @@
 /__pycache__
+/.idea
+*.xml
 *.pyc
 *.pkl
 *.csv
