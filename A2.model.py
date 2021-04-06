@@ -7,13 +7,13 @@ import pulp
 from util import Fleet, Network, transpose4pulp
 
 # load flight-scheduling data
-data = pd.read_csv('flight-scheduling-with-cost.csv', index_col=0)
+data = pd.read_csv('./data/flight-scheduling-with-cost.csv', index_col=0)
 
 # load network node data
-with open('./network.pkl', 'rb') as f:
+with open('./data/network.pkl', 'rb') as f:
     network = pickle.load(f)
 # load fleet data
-with open('./fleet.pkl', 'rb') as f:
+with open('./data/fleet.pkl', 'rb') as f:
     fleet = pickle.load(f)
 
 print("== for COMPLEX model")
@@ -205,6 +205,6 @@ result_cost = result_cost.append({'Flight number':'Total',
 
 
 
-result_df.to_csv('result.csv', index=False)
-result_summary.to_csv('result_summary.csv', index=False)
-result_cost.to_csv('result_cost.csv', index=False)
+result_df.to_csv('./result/result.csv', index=False)
+result_summary.to_csv('./result/result_summary.csv', index=False)
+result_cost.to_csv('./result/result_cost.csv', index=False)

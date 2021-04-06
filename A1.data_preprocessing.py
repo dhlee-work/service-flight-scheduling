@@ -25,6 +25,10 @@ print('obs : {}, variable : {}'.format(data.shape[0], data.shape[1]))
 print('variable list')
 print(data.columns.values)
 
+if not os.path.exists('./data'):
+    os.mkdir('./data')
+if not os.path.exists('./result'):
+    os.mkdir('./result')
 # operating cost
 # operating_cost = casm of fleet × the distance × number of seats
 # spill cost
@@ -51,7 +55,7 @@ for fleet_type in fleet_list:
 for fleet_type in fleet_list:
     data[f'x_{fleet_type}'] = 0
 
-data.to_csv('flight-scheduling-with-cost.csv')
+data.to_csv('./data/flight-scheduling-with-cost.csv')
 
 # check airport which has only origin or destination
 if ~(np.unique(data.Destination.values) == np.unique(data.Origin.values)).all():
@@ -87,8 +91,8 @@ for airport in airport_list:
     network.add_nodes(airport, airport_nodes)
 
 #save data
-with open('network.pkl', 'wb') as output:  # Overwrites any existing file.
+with open('./data/network.pkl', 'wb') as output:  # Overwrites any existing file.
     pickle.dump(network, output)
 
-with open('fleet.pkl', 'wb') as output:
+with open('./data/fleet.pkl', 'wb') as output:
     pickle.dump(fleet, output)
