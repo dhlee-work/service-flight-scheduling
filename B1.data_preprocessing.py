@@ -5,6 +5,12 @@ import pandas as pd
 
 
 data = pd.read_csv('flight-scheduling.csv')
+data_result = pd.read_csv('./result/result_cost.csv').iloc[:-1,:]
+data_result['Flight number'] = data_result['Flight number'].astype('int')
+
+data = pd.merge(data, data_result[['Flight number', 'total_cost_A', 'x_A']], how='inner', on='Flight number')
+data = data[data['x_A'] == 1] # get flight number assigned fleet A
+
 data.columns
 
 # convert time format HHMM to only minutes
@@ -16,9 +22,10 @@ arrive_time = _time.dt.hour * 60 + _time.dt.minute
 data['departure_time'] = departure_time
 data['arrive_time'] = arrive_time
 
-data_sub = data[['Flight number', 'Origin', 'Destination', 'departure_time', 'arrive_time', 'Flight Hours', 'Distance']]
-
-colname = np.array(['flight_number', 'origin', 'destination', 'departure_time', 'arrive_time', 'flight_hours', 'distance'])
+data_sub = data[['Flight number', 'Origin', 'Destination', 'departure_time',
+                 'arrive_time', 'Flight Hours', 'Distance', 'total_cost_A']]
+colname = np.array(['flight_number', 'origin', 'destination', 'departure_time',
+                    'arrive_time', 'flight_hours', 'distance', 'total_cost_A'])
 data_sub.columns = colname
 
 i = 'origin'
@@ -41,12 +48,6 @@ for i in colname:
             else:
                 data_dict[maine_var][obs[maine_var]][k].append(obs[k])
 
-data_dict['flight_number']
-data_dict['flight_number'].keys()
-data_dict['departure_time']
-data_dict['departure_time'].keys()
-data_dict['origin']
-data_dict['origin'].keys()
 
 fnum_list = np.array(list(data_dict['flight_number'].keys()))
 arrive_time_list = np.array(list(data_dict['arrive_time'].keys()))
@@ -136,7 +137,51 @@ for j in range(len(total_rout2)):
                 total_rout3[k][3] = total_rout2[i][2]
                 k += 1
 total_rout3[0]
-len(total_rout3)
+len(total_rout3)# len 1437
 np.save('./data/total_rout.npy',total_rout3)
-
+len(total_rout3)
 total_rout3[0]
+
+# dictionary to dataframe form
+# rout f_day1 f_day2 f_day3 a_day1 a_day2 a_day3 c_day1 c_day2 c_day3
+
+colname = ['rout'] + [ f'day{i+1}_rout' for i in range(3)] + \
+          [f'day{i+1}_airport' for i in range(3)] + \
+          [f'day{i+1}_flight_hours' for i in range(3)] +\
+          [f'day{i+1}_distance' for i in range(3)] +\
+          [f'day{i+1}_cost' for i in range(3)]
+'''
+['rout', 'day1_rout', 'day2_rout', 'day3_rout', 'day1_airport', 'day2_airport', 'day3_airport', 
+'day1_flight_hours', 'day2_flight_hours', 'day3_flight_hours', 'day1_distance', 'day2_distance',
+ 'day3_distance', 'day1_cost', 'day2_cost', 'day3_cost']
+'''
+result_data = pd.DataFrame([], columns= colname, index= range(len(total_rout3)))
+i=0
+rout_day=1
+for i in range(len(total_rout3)):
+    for rout_day in range(1,4):
+        result_data.loc[i,'rout'] = i
+        rout = total_rout3[i][rout_day]['rout']
+        result_data.loc[i, f'day{rout_day}_rout'] = rout
+
+        rout_list = rout.split(',')
+        day_flight_hours = 0
+        day_distance = 0
+        day_cost = 0
+        day_departure_cnt = 0
+        day_airport = ''
+        fnum = int(rout_list[0])
+
+        for fnum in rout_list:
+            fligt_num_info = data_dict['flight_number'][int(fnum)]
+            day_flight_hours += fligt_num_info['flight_hours'][0]
+            day_distance += fligt_num_info['distance'][0]
+            day_cost += fligt_num_info['total_cost_A'][0]
+            day_airport += fligt_num_info['origin'][0] + ' to ' + fligt_num_info['destination'][0] + ', '
+        day_departure_cnt = len(rout_list)
+
+        result_data.loc[i, f'day{rout_day}_rout'] = rout
+        result_data.loc[i, f'day{rout_day}_airport'] = rout
+        result_data.loc[i, f'day{rout_day}_flight_hours'] = rout
+        result_data.loc[i, f'day{rout_day}_distance'] = rout
+        result_data.loc[i, f'day{rout_day}_cost'] = rout
