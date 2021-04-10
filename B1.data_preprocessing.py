@@ -129,7 +129,7 @@ for j in range(len(total_rout2)):
             if len(np.intersect1d(a, b)) == 0:
                 if 'JFK' not in [total_rout2[j][1]['last_airport'], total_rout2[j][2]['last_airport'], total_rout2[i][1]['last_airport']]:
                     continue
-                if total_rout2[j][1]['start_airport'] != total_rout2[i][1]['last_airport']:
+                if total_rout2[j][1]['start_airport'] != total_rout2[i][2]['last_airport']:
                     continue
                 total_rout3[k]={}
                 total_rout3[k][1] = total_rout2[j][1]
@@ -149,8 +149,9 @@ colname = ['rout'] + [ f'day{i+1}_rout' for i in range(3)] + \
           [f'day{i+1}_airport' for i in range(3)] + \
           [f'day{i+1}_flight_hours' for i in range(3)] +\
           [f'day{i+1}_distance' for i in range(3)] +\
-          [f'day{i+1}_cost' for i in range(3)]
-'''
+          [f'day{i+1}_cost' for i in range(3)] + \
+          [f'day{i + 1}_departure_cnt' for i in range(3)]
+          '''
 ['rout', 'day1_rout', 'day2_rout', 'day3_rout', 'day1_airport', 'day2_airport', 'day3_airport', 
 'day1_flight_hours', 'day2_flight_hours', 'day3_flight_hours', 'day1_distance', 'day2_distance',
  'day3_distance', 'day1_cost', 'day2_cost', 'day3_cost']
@@ -181,7 +182,10 @@ for i in range(len(total_rout3)):
         day_departure_cnt = len(rout_list)
 
         result_data.loc[i, f'day{rout_day}_rout'] = rout
-        result_data.loc[i, f'day{rout_day}_airport'] = rout
-        result_data.loc[i, f'day{rout_day}_flight_hours'] = rout
-        result_data.loc[i, f'day{rout_day}_distance'] = rout
-        result_data.loc[i, f'day{rout_day}_cost'] = rout
+        result_data.loc[i, f'day{rout_day}_airport'] = day_airport
+        result_data.loc[i, f'day{rout_day}_flight_hours'] = day_flight_hours
+        result_data.loc[i, f'day{rout_day}_distance'] = day_distance
+        result_data.loc[i, f'day{rout_day}_cost'] = day_cost
+        result_data.loc[i, f'day{rout_day}_departure_cnt'] = day_departure_cnt
+
+result_data.to_csv('./result/result_rout.csv')
