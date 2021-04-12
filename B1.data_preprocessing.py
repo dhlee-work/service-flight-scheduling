@@ -11,7 +11,7 @@ data_result['Flight number'] = data_result['Flight number'].astype('int')
 data = pd.merge(data, data_result[['Flight number', 'total_cost_A', 'x_A']], how='inner', on='Flight number')
 data = data[data['x_A'] == 1] # get flight number assigned fleet A
 
-data.columns
+data.head()
 
 # convert time format HHMM to only minutes
 _time = pd.to_datetime(data['Departure Time'], format='%H:%M')
@@ -69,7 +69,7 @@ def nextstep(data_dict, fnum, preparetime=30):
     # get list of flight list at certain possible depature time
     dest_time_list = np.array(data_dict['origin'][_dest]['departure_time'])
     dest_fnum_list = np.array(data_dict['origin'][_dest]['flight_number'])
-    next_fnum_list = dest_fnum_list[dest_time_list > readydep]
+    next_fnum_list = dest_fnum_list[dest_time_list >= readydep]
     return list(next_fnum_list)
 
 
@@ -84,15 +84,13 @@ def search(data_dict, flight_number_list, rout, depth_dict, depth, _preparetime)
                               'start_airport': data_dict['flight_number'][depth_dict[1]]['origin'][0],
                               'last': depth_dict[depth],
                               'last_airport': data_dict['flight_number'][depth_dict[depth]]['destination'][0]}
-
+            return
         search(data_dict, flight_number_list, rout, depth_dict, depth, _preparetime)
-
 
 fnum_list = list(data_dict['flight_number'].keys())
 depth_dict = {}; depth = 0; rout = {}
 search(data_dict, fnum_list, rout, depth_dict, depth, preparetime)
-
-
+len(list(rout.keys()))
 
 total_rout = {}
 for i, r in enumerate(list(rout.keys())):
@@ -100,6 +98,8 @@ for i, r in enumerate(list(rout.keys())):
     total_rout[i][1] = {}
     total_rout[i][1] = rout[r]
     total_rout[i][1]['rout'] = r
+
+total_rout[146]
 
 total_rout2 = {}
 k = 0
@@ -115,6 +115,7 @@ for j in range(len(total_rout)):
                 total_rout2[k][2] = total_rout[i][1]
                 k += 1
 
+len(total_rout2)
 
 total_rout3 = {}
 k = 0
