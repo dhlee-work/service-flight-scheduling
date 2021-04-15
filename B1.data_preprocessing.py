@@ -78,13 +78,13 @@ def search(data_dict, flight_number_list, rout, depth_dict, depth, _preparetime)
     for _fnum in flight_number_list:
         depth_dict[depth] = _fnum
         flight_number_list = nextstep(data_dict, _fnum, _preparetime)
-        if len(flight_number_list) == 0:
+        if len(flight_number_list) == 0 or depth >= 1:
             rout_seq = ','.join([str(depth_dict[depth_i]) for depth_i in range(1, depth + 1)])
             rout[rout_seq] = {'start': depth_dict[1],
                               'start_airport': data_dict['flight_number'][depth_dict[1]]['origin'][0],
                               'last': depth_dict[depth],
                               'last_airport': data_dict['flight_number'][depth_dict[depth]]['destination'][0]}
-            return
+
         search(data_dict, flight_number_list, rout, depth_dict, depth, _preparetime)
 
 fnum_list = list(data_dict['flight_number'].keys())
@@ -99,21 +99,16 @@ for i, r in enumerate(list(rout.keys())):
     total_rout[i][1] = rout[r]
     total_rout[i][1]['rout'] = r
 
-total_rout[146]
-
 total_rout2 = {}
 k = 0
 for j in range(len(total_rout)):
     last_air = total_rout[j][1]['last_airport']
-    for i in range(j, len(total_rout)):
+    for i in range(len(total_rout)):
         if last_air == total_rout[i][1]['start_airport']:
-            a = total_rout[i][1]['rout'].split(',')
-            b = total_rout[j][1]['rout'].split(',')
-            if len(np.intersect1d(a, b)) == 0:
-                total_rout2[k] = {}
-                total_rout2[k][1] = total_rout[j][1]
-                total_rout2[k][2] = total_rout[i][1]
-                k += 1
+            total_rout2[k] = {}
+            total_rout2[k][1] = total_rout[j][1]
+            total_rout2[k][2] = total_rout[i][1]
+            k += 1
 
 len(total_rout2)
 
@@ -121,27 +116,22 @@ total_rout3 = {}
 k = 0
 for j in range(len(total_rout2)):
     last_air = total_rout2[j][2]['last_airport']
-    for i in range(j, len(total_rout2)):
-        if last_air == total_rout2[i][2]['start_airport']:
-            a = total_rout2[i][2]['rout'].split(',')
-            b = total_rout2[j][1]['rout'].split(',')
-            c = total_rout2[j][2]['rout'].split(',')
-            b = b + c
-            if len(np.intersect1d(a, b)) == 0:
-                if 'JFK' not in [total_rout2[j][1]['last_airport'], total_rout2[j][2]['last_airport'], total_rout2[i][1]['last_airport']]:
-                    continue
-                if total_rout2[j][1]['start_airport'] != total_rout2[i][2]['last_airport']:
-                    continue
-                total_rout3[k]={}
-                total_rout3[k][1] = total_rout2[j][1]
-                total_rout3[k][2] = total_rout2[j][2]
-                total_rout3[k][3] = total_rout2[i][2]
-                k += 1
+    for i in range(len(total_rout)):
+        if last_air == total_rout[i][1]['start_airport']:
+            if 'JFK' not in [total_rout2[j][1]['last_airport'], total_rout2[j][2]['last_airport'], total_rout[i][1]['last_airport']]:
+                continue
+            if total_rout2[j][1]['start_airport'] != total_rout[i][1]['last_airport']:
+                continue
+            total_rout3[k]={}
+            total_rout3[k][1] = total_rout2[j][1]
+            total_rout3[k][2] = total_rout2[j][2]
+            total_rout3[k][3] = total_rout[i][1]
+            k += 1
+
 total_rout3[0]
 len(total_rout3)# len 1437
-np.save('./data/total_rout.npy',total_rout3)
+#np.save('./data/total_rout.npy',total_rout3)
 len(total_rout3)
-total_rout3[0]
 
 # dictionary to dataframe form
 # rout f_day1 f_day2 f_day3 a_day1 a_day2 a_day3 c_day1 c_day2 c_day3
@@ -152,7 +142,7 @@ colname = ['rout'] + [ f'day{i+1}_rout' for i in range(3)] + \
           [f'day{i+1}_distance' for i in range(3)] +\
           [f'day{i+1}_cost' for i in range(3)] + \
           [f'day{i + 1}_departure_cnt' for i in range(3)]
-          '''
+'''
 ['rout', 'day1_rout', 'day2_rout', 'day3_rout', 'day1_airport', 'day2_airport', 'day3_airport', 
 'day1_flight_hours', 'day2_flight_hours', 'day3_flight_hours', 'day1_distance', 'day2_distance',
  'day3_distance', 'day1_cost', 'day2_cost', 'day3_cost']
@@ -190,3 +180,70 @@ for i in range(len(total_rout3)):
         result_data.loc[i, f'day{rout_day}_departure_cnt'] = day_departure_cnt
 
 result_data.to_csv('./result/result_rout.csv')
+
+def search_rout_combination(total_rout3, rout_list, depth_dict, depth, total_overnight):
+    global max_depth
+    depth += 1
+    for k in rout_list:
+        depth_dict['depth'][depth] = k
+        depth_dict['day_list'][depth] = total_overnight.copy()
+        depth_dict['day_airport'][depth] = {1:total_rout3[k][1]['rout'].split(','),
+                                            2:total_rout3[k][2]['rout'].split(','),
+                                            3:total_rout3[k][3]['rout'].split(',')}
+
+        #cannot duplicated at flight number each day
+        add_history = []
+        for jj in range(1, depth):
+            add_history += depth_dict['day_airport'][jj][1]
+        if len(np.intersect1d(add_history, depth_dict['day_airport'][depth][1])) != 0:
+            continue
+        add_history = []
+        for jj in range(1, depth):
+            add_history += depth_dict['day_airport'][jj][2]
+        if len(np.intersect1d(add_history, depth_dict['day_airport'][depth][2])) != 0:
+            continue
+        add_history = []
+        for jj in range(1, depth):
+            add_history += depth_dict['day_airport'][jj][3]
+        if len(np.intersect1d(add_history, depth_dict['day_airport'][depth][3])) != 0:
+            continue
+
+        #get last airport
+        last_airport = {}
+        for i in range(1,4):
+            last_airport[i] = total_rout3[k][i]['last_airport']
+        # check condition satisfactory
+        aa = [depth_dict['day_list'][depth][i][last_airport[i]] for i in range(1,4)]
+        if 0 in aa :
+            continue
+        # update status
+
+        for i in range(1, 4):
+            depth_dict['day_list'][depth][i][last_airport[i]] = depth_dict['day_list'][depth][i][last_airport[i]] - 1
+
+        if max_depth < depth:
+            max_depth = depth
+
+        # check goal
+        if depth == 9:
+            res = 0
+            for i in range(1,4):
+                r1 = np.sum([v for k, v in depth_dict['day_list'][depth][i].items()])
+                res+=r1
+            if res != 0:
+                continue
+            combination_seq = ','.join([str(depth_dict['depth'][depth_i]) for depth_i in range(1, depth + 1)])
+            print(combination_seq)
+            continue
+        search_rout_combination(total_rout3, rout_list, depth_dict, depth, depth_dict['day_list'][depth])
+
+#global max_depth
+#max_depth = 0
+#overnight = {'ATL':0, 'BOS':1, 'IAD':0, 'JFK':3, 'LAX':2, 'MIA':0, 'ORD':1, 'SFO':2}
+#total_overnight = {i:overnight.copy() for i in range(1,4)}
+#rout_list = list(total_rout3.keys())
+#depth_dict = {'depth':{}, 'day_airport':{}, 'day_list':{}}
+#depth = 0
+#search_rout_combination(total_rout3, rout_list, depth_dict, depth, total_overnight)
+#
+#total_rout3[0]
