@@ -237,13 +237,13 @@ def search_rout_combination(total_rout3, rout_list, depth_dict, depth, total_ove
             continue
         search_rout_combination(total_rout3, rout_list, depth_dict, depth, depth_dict['day_list'][depth])
 
-#global max_depth
-#max_depth = 0
-#overnight = {'ATL':0, 'BOS':1, 'IAD':0, 'JFK':3, 'LAX':2, 'MIA':0, 'ORD':1, 'SFO':2}
-#total_overnight = {i:overnight.copy() for i in range(1,4)}
-#rout_list = list(total_rout3.keys())
-#depth_dict = {'depth':{}, 'day_airport':{}, 'day_list':{}}
-#depth = 0
-#search_rout_combination(total_rout3, rout_list, depth_dict, depth, total_overnight)
-#
-#total_rout3[0]
+global max_depth
+max_depth = 0
+overnight = {'ATL':0, 'BOS':1, 'IAD':0, 'JFK':3, 'LAX':2, 'MIA':0, 'ORD':1, 'SFO':2}
+total_overnight = {i:overnight.copy() for i in range(1,4)}
+rout_list = list(total_rout3.keys())
+depth_dict = {'depth':{}, 'day_airport':{}, 'day_list':{}}
+depth = 0
+search_rout_combination(total_rout3, rout_list, depth_dict, depth, total_overnight)
+
+total_rout3[0]
